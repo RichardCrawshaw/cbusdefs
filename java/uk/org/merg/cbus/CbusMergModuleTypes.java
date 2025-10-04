@@ -5,11 +5,11 @@
 package uk.org.merg.cbus;
 
 // 
-// Copyright (C) Pete Brownlow 2011-2020   software@upsys.co.uk
+// Copyright (C) Pete Brownlow 2011-2022   software@upsys.co.uk
 // Originally derived from opcodes.h (c) Andrew Crosland.
 // CSV version by Ian Hogg inspired by David W Radcliffe
 // 
-// Ver 8t
+// Ver 8y 
 // 
 //   This work is licensed under the:
 //       Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.
@@ -81,15 +81,32 @@ package uk.org.merg.cbus;
 //                        Updated descriptive comments for some module types
 //                        Updated CABDAT opcode to match RFC0004
 // Pete Brownlow,06/09/20,Ver 8t Added module type for CANRCOM. Fixed: Opcode for CABDAT, names for CANRC522 and CANMAG
-// Andrew Crosland,21/09/21,Ver 8t Added PICs P18F14K22 P18F26K83 P18F27Q84 P18F47Q84 and P18F27Q83
-// Duncan Greenwood,21/10/07,Ver 8t Added OPC_DTXC opcode (0xE9) for CBUS long messages
-// 
+// Pete Brownlow,13/10/20,Ver 8u Added module types 67 to 74 including some Arduino projects
+//                               Added SPROG manufacturer code 44 and new SPROG CBUS module types
+//                               Additional error code for overload - now removed as not required after all
+//                               New bus type USB for modules with only USB and no CAN
+// Pete Brownlow,19/02/21,Ver 8u Added manufacturer code 13 for new development - who don't have a manufacturer id yet
+//                               Added proccessor identification codes for 18F25k83, 18F26k83 and 18F14K22.
+// Andrew Crosland,21/09/2021,Ver 8t Added PICs P18F14K22 P18F26K83 P18F27Q84 P18F47Q84 and P18F27Q83
+// Andrew Crosland,19/01/2022,Ver 8t, Added OPC_VCVS, Verify CV service mode - used for CV read hints, update SPROG modules types (PR#13)
+// Duncan Greenwood,07/10/2021,Ver 8t Added OPC_DTXC opcode (0xE9) for CBUS long messages - RFC 0005
+// Richard Crawshaw,11/10/2021,Ver 8t Fixed trailing comma in CbusCabSigAspect0
+// Pete Brownlow,28/07/2022,Ver 8v Resolve and merge changes in 8u branch with changes subsequently applied to master, now ver 8v in new branch,
+//   							Add requested module type ids 75 to 78
+//                               Resolve changes from PR #13,  move proposed and/or agreed opcodes not yet in the published spec to below the others
+// Pete Brownlow,5/08/2022, Ver 8w  Add module type 79 for CANBUFFER
+// Pete Brownlow,5/01/2023, Ver 8w  Add module type 80 for CANPMSense
+// Ian Hogg,14/08/2023, Ver 8x  Add manufacturer code for VLCB. This is a way to allocate a block of module Id to VLCB even though VLCB group is not a manufacturer per se. The VLCB module IDs will be defined in the VLCB repo
+// Pete Brownlow,2/11/23, Ver 8x  Add module id for CANLEVER (Tim Coombs)
+// Pete Brownlow,3/11/23, Ver 8x  Update SPROG module type ids (Andrew Crosland)
+// Pete Brownlow, 23/11/23, Ver 8y  Add CANSHIELD, CAN4IN4OUT, CANDEV
+// Ian Hogg, 10/3/25, Remove the VLCB manufacturer code as this is no longer required. Add CANARGB.
 
 public enum CbusMergModuleTypes {
 // 
 // MODULE TYPES
 // 
-// Please note that the existance of a module type id does not necessarily mean that firmware has been implemented
+// Please note that the existence of a module type id does not necessarily mean that firmware has been implemented
 // 
 // MERG Module types
 // 
@@ -155,18 +172,42 @@ public enum CbusMergModuleTypes {
 	MTYP_CANDISP(59),	//25K80 version of CANLED64 (IHart and MB)
 	MTYP_CANCOMPUTE(60),	//Compute Event processing engine
 	MTYP_CANRC522(61),	//Read/Write from/to RC522 RFID tags
-	MTYP_CANINP(62),	//8 inputs module (2g version of CANACE8c)
-	MTYP_CANOUT(63),	//8 outputs module (2g version of CANACC8)
-	MTYP_CANEMIO(64),	//Extended CANMIO (24 I/O ports)
+	MTYP_CANINP(62),	//8 inputs module (2g version of CANACE8c) (Pete Brownlow)
+	MTYP_CANOUT(63),	//8 outputs module (2g version of CANACC8) (Pete Brownlow)
+	MTYP_CANEMIO(64),	//Extended CANMIO (24 I/O ports) (Pete Brownlow)
 	MTYP_CANCABDC(65),	//DC cab
 	MTYP_CANRCOM(66),	//DC Railcom detector/reader
+	MTYP_CANMP3(67),	//MP3 sound player in response to events (eg: station announcements) (Duncan Greenwood)
+	MTYP_CANXMAS(68),	//Addressed RGB LED driver (Duncan Greenwood)
+	MTYP_CANSVOSET(69),	//Servo setting box (Duncan Greenwood)
+	MTYP_CANCMDDC(70),	//DC Command station
+	MTYP_CANTEXT(71),	//Text message display
+	MTYP_CANASIGNAL(72),	//Signal controller
+	MTYP_CANSLIDER(73),	//DCC cab with slider control (Dave Radcliffe)
+	MTYP_CANDCATC(74),	//DC ATC module (Dave Harris)
+	MTYP_CANGATE(75),	//Logic module using and/or gates (Phil Silver)
+	MTYP_CANSINP(76),	//Q series PIC input module (Ian Hart)
+	MTYP_CANSOUT(77),	//Q series PIC input module (Ian Hart)
+	MTYP_CANSBIP(78),	//Q series PIC input module (Ian Hart)
+	MTYP_CANBUFFER(79),	//Message buffer (Phil Silver)
+	MTYP_CANLEVER(80),	//Lever frame module (Tim Coombs)
+	MTYP_CANSHIELD(81),	//Kit 110 Arduino shield test firmware
+	MTYP_CAN4IN4OUT(82),	//4 inputs 4 outputs (Arduino module)
+	MTYP_CANCMDB(83),	//CANCMD with built in booster (Simon West)
+	MTYP_CANPIXEL(84),	//neopixel driver (Jon Denham)
+	MTYP_CANCABPE(85),	//Cab2 with pot or encoder (Simon West hardware, Jon Denham new C firmware)
+	MTYP_CANSMARTTD(86),	//Smart train detector (Michael Smith)
+	MTYP_CANARGB(87),	//Addressable LEDs (Ian Hogg)
+	MTYP_VLCB(0xFC),	//All VLCB modules have the same ID
 // 
-// At the time of writing the list of defined MERG module types is maintained by Roger Healey
-// Please liaise with Roger before adding new module types
+// At the time of writing the list of defined MERG module types is maintained by Pete Brownlow software@upsys.co.uk
+// Please liaise with Pete before adding new module types, 
+// and/or create your own GitHub branch, add your proposed new module type(s) and then create a Pull Request
 // 
 	MTYP_CAN_SW(0xFF),	//Software nodes
 	MTYP_EMPTY(0xFE),	//Empty module, bootloader only
-	MTYP_CANUSB(0xFD);	//USB interface
+	MTYP_CANUSB(0xFD),	//USB interface
+	MTYP_CANDEV(0xFC);	//Module type for use by developers when developing something new
 
 	private final int v;
 

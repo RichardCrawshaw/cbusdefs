@@ -5,11 +5,11 @@
 from micropython import const
 
 #         
-#         Copyright (C) Pete Brownlow 2011-2020   software@upsys.co.uk
+#         Copyright (C) Pete Brownlow 2011-2022   software@upsys.co.uk
 #         Originally derived from opcodes.h (c) Andrew Crosland.
 #         CSV version by Ian Hogg inspired by David W Radcliffe
 #         
-#         Ver 8t
+#         Ver 8y 
 #         
 #           This work is licensed under the:
 #               Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.
@@ -25,7 +25,7 @@ from micropython import const
 #             The licensor cannot revoke these freedoms as long as you follow the license terms.
 #         
 #             Attribution : You must give appropriate credit, provide a link to the license,
-#                            and indicate if changes were made. You may do so in any reasonable manner
+#                            and indicate if changes were made. You may do so in any reasonable manner,
 #                            but not in any way that suggests the licensor endorses you or your use.
 #         
 #             NonCommercial : You may not use the material for commercial purposes. **(see note below)
@@ -81,19 +81,42 @@ from micropython import const
 #                                Updated descriptive comments for some module types
 #                                Updated CABDAT opcode to match RFC0004
 #         Pete Brownlow,06/09/20,Ver 8t Added module type for CANRCOM. Fixed: Opcode for CABDAT, names for CANRC522 and CANMAG
-#         Andrew Crosland,21/09/21,Ver 8t Added PICs P18F14K22 P18F26K83 P18F27Q84 P18F47Q84 and P18F27Q83
-#         Duncan Greenwood,21/10/07,Ver 8t Added OPC_DTXC opcode (0xE9) for CBUS long messages
-#         
+#         Pete Brownlow,13/10/20,Ver 8u Added module types 67 to 74 including some Arduino projects
+#                                       Added SPROG manufacturer code 44 and new SPROG CBUS module types
+#                                       Additional error code for overload - now removed as not required after all
+#                                       New bus type USB for modules with only USB and no CAN
+#         Pete Brownlow,19/02/21,Ver 8u Added manufacturer code 13 for new development - who don't have a manufacturer id yet
+#                                       Added proccessor identification codes for 18F25k83, 18F26k83 and 18F14K22.
+#         Andrew Crosland,21/09/2021,Ver 8t Added PICs P18F14K22 P18F26K83 P18F27Q84 P18F47Q84 and P18F27Q83
+#         Andrew Crosland,19/01/2022,Ver 8t, Added OPC_VCVS, Verify CV service mode - used for CV read hints, update SPROG modules types (PR#13)
+#         Duncan Greenwood,07/10/2021,Ver 8t Added OPC_DTXC opcode (0xE9) for CBUS long messages - RFC 0005
+#         Richard Crawshaw,11/10/2021,Ver 8t Fixed trailing comma in CbusCabSigAspect0
+#         Pete Brownlow,28/07/2022,Ver 8v Resolve and merge changes in 8u branch with changes subsequently applied to master, now ver 8v in new branch,
+#           							Add requested module type ids 75 to 78
+#                                       Resolve changes from PR #13,  move proposed and/or agreed opcodes not yet in the published spec to below the others
+#         Pete Brownlow,5/08/2022, Ver 8w  Add module type 79 for CANBUFFER
+#         Pete Brownlow,5/01/2023, Ver 8w  Add module type 80 for CANPMSense
+#         Ian Hogg,14/08/2023, Ver 8x  Add manufacturer code for VLCB. This is a way to allocate a block of module Id to VLCB even though VLCB group is not a manufacturer per se. The VLCB module IDs will be defined in the VLCB repo
+#         Pete Brownlow,2/11/23, Ver 8x  Add module id for CANLEVER (Tim Coombs)
+#         Pete Brownlow,3/11/23, Ver 8x  Update SPROG module type ids (Andrew Crosland)
+#         Pete Brownlow, 23/11/23, Ver 8y  Add CANSHIELD, CAN4IN4OUT, CANDEV
+#         Ian Hogg, 10/3/25, Remove the VLCB manufacturer code as this is no longer required. Add CANARGB.
+# 
 # CBUS Manufacturer definitions
 # Where the manufacturer already has an NMRA code, this is used
 # 
-MANU_MERG = const(165)    # http://www.merg.co.uk
+MANU_DEV = const(13)    # For new manufacturer development - who don't have a manufacturer id yet
+MANU_MERG = const(165)    # https://www.merg.co.uk
+MANU_SPROG = const(44)    # https://www.sprog-dcc.co.uk/
 MANU_ROCRAIL = const(70)    # http://www.rocrail.net
 MANU_SPECTRUM = const(80)    # http://animatedmodeler.com  (Spectrum Engineering)
+MANU_SYSPIXIE = const(249)    # Konrad Orlowski
+MANU_RME = const(248)    # http://rmeuk.com  (Railway Modelling Experts Limited)
+# 
 # 
 # MODULE TYPES
 # 
-# Please note that the existance of a module type id does not necessarily mean that firmware has been implemented
+# Please note that the existence of a module type id does not necessarily mean that firmware has been implemented
 # 
 # MERG Module types
 # 
@@ -159,18 +182,58 @@ MTYP_CANPiNODE = const(58)    # CBUS module based on Raspberry Pi
 MTYP_CANDISP = const(59)    # 25K80 version of CANLED64 (IHart and MB)
 MTYP_CANCOMPUTE = const(60)    # Compute Event processing engine
 MTYP_CANRC522 = const(61)    # Read/Write from/to RC522 RFID tags
-MTYP_CANINP = const(62)    # 8 inputs module (2g version of CANACE8c)
-MTYP_CANOUT = const(63)    # 8 outputs module (2g version of CANACC8)
-MTYP_CANEMIO = const(64)    # Extended CANMIO (24 I/O ports)
+MTYP_CANINP = const(62)    # 8 inputs module (2g version of CANACE8c) (Pete Brownlow)
+MTYP_CANOUT = const(63)    # 8 outputs module (2g version of CANACC8) (Pete Brownlow)
+MTYP_CANEMIO = const(64)    # Extended CANMIO (24 I/O ports) (Pete Brownlow)
 MTYP_CANCABDC = const(65)    # DC cab
 MTYP_CANRCOM = const(66)    # DC Railcom detector/reader
+MTYP_CANMP3 = const(67)    # MP3 sound player in response to events (eg: station announcements) (Duncan Greenwood)
+MTYP_CANXMAS = const(68)    # Addressed RGB LED driver (Duncan Greenwood)
+MTYP_CANSVOSET = const(69)    # Servo setting box (Duncan Greenwood)
+MTYP_CANCMDDC = const(70)    # DC Command station
+MTYP_CANTEXT = const(71)    # Text message display
+MTYP_CANASIGNAL = const(72)    # Signal controller
+MTYP_CANSLIDER = const(73)    # DCC cab with slider control (Dave Radcliffe)
+MTYP_CANDCATC = const(74)    # DC ATC module (Dave Harris)
+MTYP_CANGATE = const(75)    # Logic module using and/or gates (Phil Silver)
+MTYP_CANSINP = const(76)    # Q series PIC input module (Ian Hart)
+MTYP_CANSOUT = const(77)    # Q series PIC input module (Ian Hart)
+MTYP_CANSBIP = const(78)    # Q series PIC input module (Ian Hart)
+MTYP_CANBUFFER = const(79)    # Message buffer (Phil Silver)
+MTYP_CANLEVER = const(80)    # Lever frame module (Tim Coombs)
+MTYP_CANSHIELD = const(81)    # Kit 110 Arduino shield test firmware
+MTYP_CAN4IN4OUT = const(82)    # 4 inputs 4 outputs (Arduino module)
+MTYP_CANCMDB = const(83)    # CANCMD with built in booster (Simon West)
+MTYP_CANPIXEL = const(84)    # neopixel driver (Jon Denham)
+MTYP_CANCABPE = const(85)    # Cab2 with pot or encoder (Simon West hardware, Jon Denham new C firmware)
+MTYP_CANSMARTTD = const(86)    # Smart train detector (Michael Smith)
+MTYP_CANARGB = const(87)    # Addressable LEDs (Ian Hogg)
+MTYP_VLCB = const(0xFC)    # All VLCB modules have the same ID
 # 
-# At the time of writing the list of defined MERG module types is maintained by Roger Healey
-# Please liaise with Roger before adding new module types
+# 
+# 
+# 
+# At the time of writing the list of defined MERG module types is maintained by Pete Brownlow software@upsys.co.uk
+# Please liaise with Pete before adding new module types, 
+# and/or create your own GitHub branch, add your proposed new module type(s) and then create a Pull Request
 # 
 MTYP_CAN_SW = const(0xFF)    # Software nodes
 MTYP_EMPTY = const(0xFE)    # Empty module, bootloader only
 MTYP_CANUSB = const(0xFD)    # USB interface
+MTYP_CANDEV = const(0xFC)    # Module type for use by developers when developing something new
+# 
+# Sprog Module types
+# 
+MTYP_CANPiSPRG3 = const(1)    # Pi-SPROG 3 programmer/command station
+MTYP_CANSPROG3P = const(2)    # SPROG 3 Plus programmer/command station
+MTYP_CANSPROG = const(3)    # CAN SPROG programmer/command station
+MTYP_CANSBOOST = const(4)    # System Booster
+MTYP_CANPiSPRGP = const(5)    # Pi-SPROG 3 Plus programmer/command station
+MTYP_CANSOLNOID  = const(8)    # 8-channel (4-pairs) Solenoid I/O module
+MTYP_CANSERVOIO = const(50)    # 8-channel Servo I/O module
+MTYP_CANISB = const(100)    # CAN ISB Isolated CAN USB Interface
+MTYP_CANSOLIO  = const(101)    # 8-channel (4-pairs) Solenoid I/O module
+# 
 # 
 # Rocrail Module types
 # 
@@ -187,6 +250,12 @@ MTYP_CANGC1e = const(11)    # CAN<->Ethernet interface
 # 
 MTYP_AMCTRLR = const(1)    # Animation controller (firmware derived from cancmd)
 MTYP_DUALCAB = const(2)    # Dual cab based on cancab
+# 
+# 
+# SysPixie Module types (Konrad Orlowski)
+# 
+MTYP_CANPMSense = const(1)    # Motorised point motor driver with current sense
+# 
 # 
 # 
 # CBUS opcodes list
@@ -336,7 +405,6 @@ OPC_RDCC6 = const(0xE0)    # 6 byte DCC packets
 OPC_PLOC = const(0xE1)    # Loco session report
 OPC_NAME = const(0xE2)    # Module name response
 OPC_STAT = const(0xE3)    # Command station status report
-OPC_DTXC = const(0xE9)    # CBUS long message packet
 OPC_PARAMS = const(0xEF)    # Node parameters response
 # 
 OPC_ACON3 = const(0xF0)    # On event with 3 data bytes
@@ -355,6 +423,11 @@ OPC_DDWS = const(0xFC)    # Device Data Write Short
 OPC_ARSON3 = const(0xFD)    # Short response event on with 3 data bytes
 OPC_ARSOF3 = const(0xFE)    # Short response event off with 3 data bytes
 OPC_EXTC6 = const(0xFF)    # Extended opcode with 6 data byes
+# 
+# Opcodes that are proposed and/or agreed but not yet in the current published specification
+# 
+OPC_VCVS = const(0xA4)    # Verify CV service mode - used for CV read hints
+OPC_DTXC = const(0xE9)    # CBUS long message packet
 # 
 # 
 # Modes for STMOD
@@ -399,6 +472,11 @@ CMDERR_INV_NV_IDX = const(10)    #
 CMDERR_INV_EV_VALUE = const(11)    # 
 CMDERR_INV_NV_VALUE = const(12)    # 
 # 
+# Additional error codes proposed and/or agreed but not yet in the current published specification
+# 
+CMDERR_LRN_OTHER = const(13)    # Sent when module in learn mode sees NNLRN for different module (also exits learn mode) 
+# 
+# 
 # Sub opcodes for OPC_CABDAT
 # 
 CDAT_CABSIG = const(1)    # 
@@ -440,7 +518,7 @@ PAR_CPUID = const(9)    # Processor type
 PAR_BUSTYPE = const(10)    # Bus type
 PAR_LOAD = const(11)    # load address, 4 bytes
 PAR_CPUMID = const(15)    # CPU manufacturer's id as read from the chip config space, 4 bytes (note - read from cpu at runtime, so not included in checksum)
-PAR_CPUMAN = const(19)    #  CPU manufacturer code
+PAR_CPUMAN = const(19)    # CPU manufacturer code
 PAR_BETA = const(20)    # Beta revision (numeric), or 0 if release
 # 
 # Offsets to other values stored at the top of the parameter block.
@@ -453,20 +531,22 @@ PAR_CKSUM = const(0x1E)    # Checksum word at end of parameters
 # 
 # Flags in PAR_FLAGS
 # 
-PF_NOEVENTS = const(0)    # Modules doesn't support events
+PF_NOEVENTS = const(0)    # Module doesn't support events
 PF_CONSUMER = const(1)    # Module is a consumer of events
 PF_PRODUCER = const(2)    # Module is a producer of events
 PF_COMBI = const(3)    # Module is both a consumer and producer of events
-PF_FLiM = const(4)    # Module is in FLiM mode
+PF_FLiM = const(4)    # Module is in FLiM
 PF_BOOT = const(8)    # Module supports the FCU bootloader protocol
 PF_COE = const(16)    # Module can consume its own events
 PF_LRN = const(32)    # Module is in learn mode
+PF_VLCB = const(64)    # Module is VLCB compatible
 # 
 # BUS type that module is connected to
 # 
 PB_CAN = const(1)    # 
 PB_ETH = const(2)    # 
 PB_MIWI = const(3)    # 
+PB_USB = const(4)    # 
 # 
 # Processor manufacturer codes
 # 
@@ -474,7 +554,7 @@ CPUM_MICROCHIP = const(1)    #
 CPUM_ATMEL = const(2)    # 
 CPUM_ARM = const(3)    # 
 # 
-# Microchip Processor type codes (identifies to FCU for bootload compatiblity)
+# Microchip Processor type codes (identifies to FCU for bootload compatibility)
 # 
 P18F2480 = const(1)    # 
 P18F4480 = const(2)    # 
@@ -495,11 +575,12 @@ P18F26K80 = const(15)    #
 P18F46K80 = const(16)    # 
 P18F65K80 = const(17)    # 
 P18F66K80 = const(18)    # 
-P18F14K22 = const(19)    # 
+P18F25K83 = const(19)    # 
 P18F26K83 = const(20)    # 
 P18F27Q84 = const(21)    # 
 P18F47Q84 = const(22)    # 
 P18F27Q83 = const(23)    # 
+P18F14K22 = const(25)    # 
 # 
 P32MX534F064 = const(30)    # 
 P32MX564F064 = const(31)    # 
@@ -511,7 +592,7 @@ P32MX775F256 = const(36)    #
 P32MX775F512 = const(37)    # 
 P32MX795F512 = const(38)    # 
 # 
-# ARM Processor type codes (identifies to FCU for bootload compatiblity)
+# ARM Processor type codes (identifies to FCU for bootload compatibility)
 # 
 ARM1176JZF_S = const(1)    # As used in Raspberry Pi
 ARMCortex_A7 = const(2)    # As Used in Raspberry Pi 2
